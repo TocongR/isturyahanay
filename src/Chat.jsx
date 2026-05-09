@@ -7,6 +7,7 @@ import {
   orderBy,
   serverTimestamp,
   doc,
+  setDoc,
   updateDoc,
   increment,
   getDoc,
@@ -53,7 +54,6 @@ const styles = `
     );
   }
 
-  /* ── DESKTOP: fills above taskbar, centers content ── */
   .desktop {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 28px;
@@ -63,7 +63,6 @@ const styles = `
     padding: 16px;
   }
 
-  /* ── BEVEL WINDOW ── */
   .window {
     background: var(--win-bg);
     border-top: 2px solid var(--win-light);
@@ -73,7 +72,6 @@ const styles = `
     box-shadow: 2px 2px 0 #000, inset 1px 1px 0 #e8e4dc;
   }
 
-  /* ── TITLE BAR ── */
   .title-bar {
     background: linear-gradient(to right, var(--win-title-from), var(--win-title-to));
     padding: 3px 4px 3px 6px;
@@ -115,7 +113,6 @@ const styles = `
     border-bottom: 1px solid var(--win-light);
   }
 
-  /* ── BUTTONS ── */
   .win-btn {
     background: var(--win-btn);
     border: none; outline: none;
@@ -141,7 +138,6 @@ const styles = `
   }
   .win-btn:disabled { color: var(--win-dark); cursor: default; }
 
-  /* ── INSET ── */
   .inset-box {
     background: var(--inset-bg);
     border-top: 2px solid var(--win-darker);
@@ -162,7 +158,6 @@ const styles = `
     padding: 4px 6px; user-select: text;
   }
 
-  /* ── LANDING DIALOG ── */
   .landing-window { width: 420px; flex-shrink: 0; }
   .dialog-body { padding: 16px 20px; }
   .dialog-icon-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
@@ -180,7 +175,6 @@ const styles = `
     margin: 0 8px 14px;
   }
 
-  /* ── NICK MODAL ── */
   .nick-window {
     width: 360px;
     position: fixed; top: 50%; left: 50%;
@@ -190,7 +184,6 @@ const styles = `
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 100; }
   .nick-label { font-family: var(--font); font-size: 13px; margin-bottom: 6px; display: block; }
 
-  /* ── CHAT WINDOW: fixed comfy size, centered ── */
   .chat-window {
     width: 600px;
     height: 500px;
@@ -201,7 +194,6 @@ const styles = `
     flex-shrink: 0;
   }
 
-  /* ── MENUBAR ── */
   .menubar {
     padding: 2px 4px; display: flex; gap: 2px;
     border-bottom: 1px solid var(--win-darker);
@@ -212,7 +204,6 @@ const styles = `
   .menu-item:hover { background: var(--win-title-from); color: white; }
   .menu-item u { text-decoration: underline; }
 
-  /* ── MESSAGES ── */
   .messages-area {
     flex: 1;
     min-height: 0;
@@ -240,7 +231,6 @@ const styles = `
   .msg-text { word-break: break-word; flex: 1; }
   .no-messages { color: var(--win-dark); font-style: italic; padding: 12px 4px; }
 
-  /* ── INPUT ROW ── */
   .input-row {
     display: flex; gap: 6px;
     padding: 6px 8px 8px;
@@ -255,7 +245,6 @@ const styles = `
   }
   .msg-input { flex: 1; }
 
-  /* ── STATUS BAR ── */
   .statusbar {
     padding: 2px 8px;
     border-top: 1px solid var(--win-darker);
@@ -274,7 +263,6 @@ const styles = `
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
 
-  /* ── TASKBAR ── */
   .taskbar {
     position: fixed; bottom: 0; left: 0; right: 0;
     height: 28px;
@@ -285,11 +273,7 @@ const styles = `
   }
   .taskbar-window-btn {
     height: 20px; padding: 0 8px; font-size: 11px;
-    border-top: 1px solid var(--win-darker);
-    border-left: 1px solid var(--win-darker);
-    border-right: 1px solid var(--win-light);
-    border-bottom: 1px solid var(--win-light);
-    background: var(--win-bg); font-family: var(--font); box-shadow: none;
+    background: var(--win-bg); font-family: var(--font);
     border: none; outline: none; cursor: pointer;
     border-top: 1px solid var(--win-darker);
     border-left: 1px solid var(--win-darker);
@@ -305,63 +289,18 @@ const styles = `
     padding: 2px 8px;
   }
 
-  /* ── MOBILE RESPONSIVE ── */
   @media (max-width: 480px) {
-    .desktop {
-      padding: 8px;
-    }
-
-    .landing-window {
-      width: 100%;
-      max-width: calc(100vw - 16px);
-    }
-
-    .dialog-body {
-      padding: 12px 14px;
-    }
-
-    .dialog-icon-row {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 12px;
-      margin-bottom: 14px;
-    }
-
-    .dialog-message {
-      font-size: 12px;
-      line-height: 1.5;
-    }
-
-    .dialog-buttons {
-      flex-wrap: wrap;
-      padding: 8px 14px 12px;
-      gap: 6px;
-    }
-
-    .win-btn {
-      min-width: 65px;
-      padding: 4px 12px;
-      font-size: 12px;
-    }
-
-    .nick-window {
-      width: calc(100vw - 16px);
-      max-width: 340px;
-    }
-
-    .title-bar-text {
-      font-size: 12px;
-    }
-
-    .taskbar {
-      height: 32px;
-    }
-
-    .taskbar-clock {
-      font-size: 10px;
-      padding: 2px 6px;
-    }
+    .desktop { padding: 8px; }
+    .landing-window { width: 100%; max-width: calc(100vw - 16px); }
+    .dialog-body { padding: 12px 14px; }
+    .dialog-icon-row { flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-bottom: 14px; }
+    .dialog-message { font-size: 12px; line-height: 1.5; }
+    .dialog-buttons { flex-wrap: wrap; padding: 8px 14px 12px; gap: 6px; }
+    .win-btn { min-width: 65px; padding: 4px 12px; font-size: 12px; }
+    .nick-window { width: calc(100vw - 16px); max-width: 340px; }
+    .title-bar-text { font-size: 12px; }
+    .taskbar { height: 32px; }
+    .taskbar-clock { font-size: 10px; padding: 2px 6px; }
   }
 `;
 
@@ -384,6 +323,31 @@ function Clock() {
   return <div className="taskbar-clock">{time}</div>;
 }
 
+// ── SHARED HELPER — safely increment an analytics doc ──────────────────────
+async function incrementStat(docRef, todayStr, fields = {}) {
+  const snap = await getDoc(docRef);
+  const today = todayStr;
+
+  if (!snap.exists()) {
+    // Document doesn't exist yet — create it with setDoc
+    await setDoc(docRef, {
+      total: 1,
+      today: 1,
+      lastDate: today,
+      ...fields,
+    });
+  } else {
+    const data = snap.data();
+    const isNewDay = data.lastDate !== today;
+    await updateDoc(docRef, {
+      total: increment(1),
+      // reset today count if it's a new day, otherwise increment
+      today: isNewDay ? 1 : increment(1),
+      lastDate: today,
+    });
+  }
+}
+
 export default function Chat() {
   const [nickname, setNickname] = useState("");
   const [messages, setMessages] = useState([]);
@@ -394,31 +358,23 @@ export default function Chat() {
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  // ── Track visit + subscribe to messages once user enters ──────────────────
   useEffect(() => {
     if (!entered) return;
-    const trackVisit = async () => {
-      const visitDoc = doc(db, "analytics", "visits");
-      const docSnap = await getDoc(visitDoc);
-      const today = new Date().toDateString();
-      if (!docSnap.exists()) {
-        await updateDoc(visitDoc, { total: 1, today: 1, lastDate: today });
-      } else {
-        const data = docSnap.data();
-        await updateDoc(visitDoc, {
-          total: increment(1),
-          today: data.lastDate !== today ? 1 : increment(1),
-          lastDate: today,
-        });
-      }
-    };
-    trackVisit();
 
+    const today = new Date().toDateString();
+
+    // Track the visit
+    incrementStat(doc(db, "analytics", "visits"), today);
+
+    // Subscribe to messages
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setMessages(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
+
     return () => unsubscribe();
-  }, [entered]);
+  }, [entered]); // runs exactly once when entered flips to true
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -436,27 +392,26 @@ export default function Chat() {
   const sendMessage = async () => {
     if (!input.trim()) return;
     const today = new Date().toDateString();
+
+    // Write the message
     await addDoc(collection(db, "messages"), {
-      text: input, nickname, createdAt: serverTimestamp(),
+      text: input.trim(),
+      nickname,
+      createdAt: serverTimestamp(),
     });
-    const statsDoc = doc(db, "analytics", "messages");
-    const statsSnap = await getDoc(statsDoc);
-    if (!statsSnap.exists()) {
-      await updateDoc(statsDoc, { total: 1, today: 1, lastDate: today });
-    } else {
-      const data = statsSnap.data();
-      await updateDoc(statsDoc, {
-        total: increment(1),
-        today: data.lastDate !== today ? 1 : increment(1),
-        lastDate: today,
-      });
-    }
+
+    // Track the message stat
+    await incrementStat(doc(db, "analytics", "messages"), today);
+
     setInput("");
     inputRef.current?.focus();
   };
 
   const handleKey = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
 
   return (
@@ -495,15 +450,22 @@ export default function Chat() {
                   style={{ width: "100%", marginBottom: "16px" }}
                   value={nickInput}
                   onChange={(e) => setNickInput(e.target.value)}
-                  autoFocus maxLength={24}
+                  autoFocus
+                  maxLength={24}
                 />
                 <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
                   <button className="win-btn" type="submit">OK</button>
-                  <button className="win-btn" type="button" onClick={() => {
-                    setNickname("Anonymous");
-                    setShowNickModal(false);
-                    setEntered(true);
-                  }}>Cancel</button>
+                  <button
+                    className="win-btn"
+                    type="button"
+                    onClick={() => {
+                      setNickname("Anonymous");
+                      setShowNickModal(false);
+                      setEntered(true);
+                    }}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </form>
             </div>
@@ -539,7 +501,10 @@ export default function Chat() {
                 </div>
               </div>
               <div className="separator" />
-              <div style={{ fontFamily: "var(--font)", fontSize: "12px", color: "var(--win-dark)", marginBottom: "14px", lineHeight: 1.6 }}>
+              <div style={{
+                fontFamily: "var(--font)", fontSize: "12px",
+                color: "var(--win-dark)", marginBottom: "14px", lineHeight: 1.6
+              }}>
                 This program requires a valid username.<br/>
                 All messages are visible to all users.
               </div>
@@ -554,7 +519,9 @@ export default function Chat() {
           /* CHAT */
           <div className="window chat-window">
             <div className="title-bar">
-              <span className="title-bar-text">Isturyahanay - [{nickname}] - Public Room #1</span>
+              <span className="title-bar-text">
+                Isturyahanay - [{nickname}] - Public Room #1
+              </span>
               <div className="title-bar-controls">
                 <div className="title-btn">_</div>
                 <div className="title-btn">&#9744;</div>
@@ -597,7 +564,13 @@ export default function Chat() {
                 placeholder="Type here and press Enter..."
                 autoFocus
               />
-              <button className="win-btn" onClick={sendMessage} disabled={!input.trim()}>Send</button>
+              <button
+                className="win-btn"
+                onClick={sendMessage}
+                disabled={!input.trim()}
+              >
+                Send
+              </button>
             </div>
 
             <div className="statusbar">
@@ -605,7 +578,9 @@ export default function Chat() {
               <div className="status-panel" style={{ flex: "0 0 auto", minWidth: 100 }}>
                 {messages.length} message{messages.length !== 1 ? "s" : ""}
               </div>
-              <div className="status-panel" style={{ flex: "0 0 auto", minWidth: 80 }}>Online</div>
+              <div className="status-panel" style={{ flex: "0 0 auto", minWidth: 80 }}>
+                Online
+              </div>
             </div>
           </div>
         )}
@@ -613,7 +588,10 @@ export default function Chat() {
 
       {/* TASKBAR */}
       <div className="taskbar">
-        <button className="win-btn" style={{ fontWeight: 700, padding: "2px 12px", height: 22, minWidth: 0, fontSize: 13 }}>
+        <button className="win-btn" style={{
+          fontWeight: 700, padding: "2px 12px",
+          height: 22, minWidth: 0, fontSize: 13
+        }}>
           Start
         </button>
         {entered && (

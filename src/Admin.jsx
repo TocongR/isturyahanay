@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
-import { doc, getDoc, collection, query, orderBy, limit, onSnapshot } from "firebase/firestore";
+import {
+  doc,
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+} from "firebase/firestore";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap');
@@ -22,11 +29,7 @@ const styles = `
     --green: #006600;
   }
 
-  html, body {
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-  }
+  html, body { height: 100%; width: 100%; overflow: hidden; }
 
   body {
     background: var(--desktop);
@@ -42,7 +45,6 @@ const styles = `
     );
   }
 
-  /* ── BEVEL UTILS ── */
   .window {
     background: var(--win-bg);
     border-top: 2px solid var(--win-light);
@@ -55,62 +57,39 @@ const styles = `
   .title-bar {
     background: linear-gradient(to right, var(--title-from), var(--title-to));
     padding: 3px 4px 3px 6px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4px;
-    flex-shrink: 0;
+    display: flex; align-items: center;
+    justify-content: space-between; gap: 4px; flex-shrink: 0;
   }
   .title-bar-text {
-    font-family: var(--font);
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--title-text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
+    font-family: var(--font); font-size: 13px; font-weight: 700;
+    color: var(--title-text); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; flex: 1;
   }
   .title-bar-controls { display: flex; gap: 2px; }
   .title-btn {
-    width: 16px; height: 14px;
-    background: var(--win-bg);
-    border-top: 1px solid var(--win-light);
-    border-left: 1px solid var(--win-light);
-    border-right: 1px solid var(--win-darker);
-    border-bottom: 1px solid var(--win-darker);
-    font-family: var(--font);
-    font-size: 9px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
+    width: 16px; height: 14px; background: var(--win-bg);
+    border-top: 1px solid var(--win-light); border-left: 1px solid var(--win-light);
+    border-right: 1px solid var(--win-darker); border-bottom: 1px solid var(--win-darker);
+    font-family: var(--font); font-size: 9px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
   }
   .title-btn:active {
-    border-top: 1px solid var(--win-darker);
-    border-left: 1px solid var(--win-darker);
-    border-right: 1px solid var(--win-light);
-    border-bottom: 1px solid var(--win-light);
+    border-top: 1px solid var(--win-darker); border-left: 1px solid var(--win-darker);
+    border-right: 1px solid var(--win-light); border-bottom: 1px solid var(--win-light);
   }
 
   .win-btn {
-    background: var(--win-bg);
-    border: none; outline: none;
-    font-family: var(--font); font-size: 13px;
-    color: var(--text);
-    cursor: pointer;
-    padding: 4px 18px;
-    min-width: 75px;
-    border-top: 2px solid var(--win-light);
-    border-left: 2px solid var(--win-light);
-    border-right: 2px solid var(--win-darker);
-    border-bottom: 2px solid var(--win-darker);
+    background: var(--win-bg); border: none; outline: none;
+    font-family: var(--font); font-size: 13px; color: var(--text);
+    cursor: pointer; padding: 4px 18px; min-width: 75px;
+    border-top: 2px solid var(--win-light); border-left: 2px solid var(--win-light);
+    border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
     box-shadow: inset 1px 1px 0 #e8e4dc, inset -1px -1px 0 #a0a0a0;
     user-select: none;
   }
   .win-btn:active {
-    border-top: 2px solid var(--win-darker);
-    border-left: 2px solid var(--win-darker);
-    border-right: 2px solid var(--win-light);
-    border-bottom: 2px solid var(--win-light);
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-light); border-bottom: 2px solid var(--win-light);
     box-shadow: inset 1px 1px 0 #a0a0a0, inset -1px -1px 0 #e8e4dc;
     padding: 5px 17px 3px 19px;
   }
@@ -118,22 +97,17 @@ const styles = `
 
   .inset-box {
     background: var(--inset-bg);
-    border-top: 2px solid var(--win-darker);
-    border-left: 2px solid var(--win-darker);
-    border-right: 2px solid var(--win-light);
-    border-bottom: 2px solid var(--win-light);
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-light); border-bottom: 2px solid var(--win-light);
     box-shadow: inset 1px 1px 0 #a0a0a0;
   }
   .inset-input {
     background: var(--inset-bg);
-    border-top: 2px solid var(--win-darker);
-    border-left: 2px solid var(--win-darker);
-    border-right: 2px solid var(--win-light);
-    border-bottom: 2px solid var(--win-light);
+    border-top: 2px solid var(--win-darker); border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-light); border-bottom: 2px solid var(--win-light);
     box-shadow: inset 1px 1px 0 #a0a0a0;
     font-family: var(--font); font-size: 13px;
-    color: var(--text); outline: none;
-    padding: 3px 6px; user-select: text;
+    color: var(--text); outline: none; padding: 3px 6px; user-select: text;
   }
 
   .separator {
@@ -143,36 +117,23 @@ const styles = `
     margin: 10px 0;
   }
 
-  /* ── TASKBAR ── */
   .taskbar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    height: 28px;
-    background: var(--win-bg);
-    border-top: 2px solid var(--win-light);
-    display: flex; align-items: center; gap: 4px;
-    padding: 0 4px; z-index: 50;
+    position: fixed; bottom: 0; left: 0; right: 0; height: 28px;
+    background: var(--win-bg); border-top: 2px solid var(--win-light);
+    display: flex; align-items: center; gap: 4px; padding: 0 4px; z-index: 50;
   }
   .taskbar-clock {
     margin-left: auto; font-family: var(--font); font-size: 11px;
-    border-top: 1px solid var(--win-darker);
-    border-left: 1px solid var(--win-darker);
-    border-right: 1px solid var(--win-light);
-    border-bottom: 1px solid var(--win-light);
+    border-top: 1px solid var(--win-darker); border-left: 1px solid var(--win-darker);
+    border-right: 1px solid var(--win-light); border-bottom: 1px solid var(--win-light);
     padding: 2px 8px;
   }
 
-  /* ── DESKTOP AREA (above taskbar) ── */
   .desktop {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    bottom: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 28px;
+    display: flex; align-items: center; justify-content: center; padding: 10px;
   }
 
-  /* ── LOGIN DIALOG ── */
   .login-window { width: 380px; flex-shrink: 0; }
   .login-body { padding: 16px 20px 20px; }
   .login-icon-row { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
@@ -180,54 +141,33 @@ const styles = `
   .login-label { font-size: 13px; margin-bottom: 5px; display: block; }
   .login-btns { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
 
-  /* ── DASHBOARD WINDOW — fills the desktop area ── */
   .dash-window {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    /* override the generic .window box-shadow so it sits flush */
-    box-shadow: none;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column; box-shadow: none;
   }
 
   .menubar {
     padding: 2px 4px; display: flex; gap: 0;
-    border-bottom: 1px solid var(--win-dark);
-    flex-shrink: 0;
+    border-bottom: 1px solid var(--win-dark); flex-shrink: 0;
   }
-  .menu-item {
-    font-family: var(--font); font-size: 13px;
-    padding: 1px 8px; cursor: pointer;
-  }
+  .menu-item { font-family: var(--font); font-size: 13px; padding: 1px 8px; cursor: pointer; }
   .menu-item:hover { background: var(--title-from); color: white; }
 
-  /* dash body fills remaining height */
   .dash-body {
-    flex: 1;
-    min-height: 0;        /* critical: lets flex children shrink below content size */
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    padding: 8px;
-    gap: 8px;
+    flex: 1; min-height: 0; overflow: hidden;
+    display: flex; flex-direction: column; padding: 8px; gap: 8px;
   }
 
-  /* ── STAT CARDS ── */
   .stat-row { display: flex; gap: 8px; flex-shrink: 0; }
   .stat-group { flex: 1; }
   .group-title {
-    background: var(--title-from);
-    color: var(--title-text);
-    font-family: var(--font);
-    font-size: 11px; font-weight: 700;
+    background: var(--title-from); color: var(--title-text);
+    font-family: var(--font); font-size: 11px; font-weight: 700;
     letter-spacing: 0.08em; text-transform: uppercase;
     padding: 2px 8px; margin-bottom: 6px;
   }
   .stat-cards { display: flex; gap: 6px; }
-  .stat-card {
-    flex: 1; padding: 8px 10px;
-    display: flex; flex-direction: column; gap: 2px;
-  }
+  .stat-card { flex: 1; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
   .stat-card-label {
     font-family: var(--font); font-size: 10px;
     color: var(--win-dark); letter-spacing: 0.08em; text-transform: uppercase;
@@ -238,60 +178,39 @@ const styles = `
   }
   .stat-card-sub { font-size: 10px; color: var(--win-dark); }
 
-  /* ── ACTIVITY LOG ── */
-  .activity-section {
-    flex: 1;
-    min-height: 0;        /* critical */
-    display: flex;
-    flex-direction: column;
-  }
+  .activity-section { flex: 1; min-height: 0; display: flex; flex-direction: column; }
   .section-header {
-    display: flex; align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px; padding: 0 2px;
-    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 4px; padding: 0 2px; flex-shrink: 0;
   }
   .section-title {
-    font-family: var(--font); font-size: 11px;
-    font-weight: 700; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--win-dark);
+    font-family: var(--font); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--win-dark);
   }
-  .live-badge {
-    display: flex; align-items: center; gap: 4px;
-    font-family: var(--font); font-size: 10px; color: var(--green);
-  }
+  .live-badge { display: flex; align-items: center; gap: 4px; font-family: var(--font); font-size: 10px; color: var(--green); }
   .live-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--green);
+    width: 6px; height: 6px; border-radius: 50%; background: var(--green);
     animation: blink 1.4s ease-in-out infinite;
   }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
   .activity-log {
-    flex: 1;
-    min-height: 0;        /* critical */
-    overflow-y: auto;
-    padding: 4px 8px;
-    font-family: var(--font); font-size: 12px;
-    scrollbar-width: thin;
-    scrollbar-color: var(--win-bg) var(--win-bg);
+    flex: 1; min-height: 0; overflow-y: auto;
+    padding: 4px 8px; font-family: var(--font); font-size: 12px;
+    scrollbar-width: thin; scrollbar-color: var(--win-bg) var(--win-bg);
     user-select: text;
   }
   .activity-log::-webkit-scrollbar { width: 16px; }
   .activity-log::-webkit-scrollbar-track { background: var(--win-bg); border-left: 1px solid var(--win-darker); }
   .activity-log::-webkit-scrollbar-thumb {
     background: var(--win-bg);
-    border-top: 1px solid var(--win-light);
-    border-left: 1px solid var(--win-light);
-    border-right: 1px solid var(--win-darker);
-    border-bottom: 1px solid var(--win-darker);
+    border-top: 1px solid var(--win-light); border-left: 1px solid var(--win-light);
+    border-right: 1px solid var(--win-darker); border-bottom: 1px solid var(--win-darker);
   }
 
   .log-row {
     display: flex; gap: 8px; align-items: baseline;
-    padding: 3px 0;
-    border-bottom: 1px dashed #c0bcb4;
-    animation: fadeIn 0.15s;
+    padding: 3px 0; border-bottom: 1px dashed #c0bcb4; animation: fadeIn 0.15s;
   }
   .log-row:last-child { border-bottom: none; }
   @keyframes fadeIn { from{opacity:0} to{opacity:1} }
@@ -303,23 +222,15 @@ const styles = `
   .log-time { color: var(--win-dark); font-size: 10px; flex-shrink: 0; white-space: nowrap; }
   .log-empty { color: var(--win-dark); font-style: italic; padding: 8px 0; }
 
-  /* ── STATUS BAR ── */
   .statusbar {
-    padding: 2px 8px;
-    border-top: 1px solid var(--win-darker);
-    display: flex; gap: 6px;
-    flex-shrink: 0;
+    padding: 2px 8px; border-top: 1px solid var(--win-darker);
+    display: flex; gap: 6px; flex-shrink: 0;
   }
   .status-panel {
-    border-top: 1px solid var(--win-darker);
-    border-left: 1px solid var(--win-darker);
-    border-right: 1px solid var(--win-light);
-    border-bottom: 1px solid var(--win-light);
-    padding: 1px 6px;
-    font-size: 11px; font-family: var(--font);
-    color: var(--win-dark);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    flex: 1;
+    border-top: 1px solid var(--win-darker); border-left: 1px solid var(--win-darker);
+    border-right: 1px solid var(--win-light); border-bottom: 1px solid var(--win-light);
+    padding: 1px 6px; font-size: 11px; font-family: var(--font); color: var(--win-dark);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;
   }
 `;
 
@@ -352,21 +263,30 @@ export default function Admin() {
 
   useEffect(() => {
     if (!authed) return;
-    const fetchVisits = async () => {
-      const snap = await getDoc(doc(db, "analytics", "visits"));
+
+    // Live-listen to analytics docs so numbers update without refresh
+    const unsubVisits = onSnapshot(doc(db, "analytics", "visits"), (snap) => {
       if (snap.exists()) setVisits(snap.data());
-    };
-    const fetchMsgStats = async () => {
-      const snap = await getDoc(doc(db, "analytics", "messages"));
+    });
+
+    const unsubMsgs = onSnapshot(doc(db, "analytics", "messages"), (snap) => {
       if (snap.exists()) setMsgStats(snap.data());
-    };
-    fetchVisits();
-    fetchMsgStats();
-    const q = query(collection(db, "messages"), orderBy("createdAt", "desc"), limit(20));
-    const unsub = onSnapshot(q, (s) =>
+    });
+
+    const q = query(
+      collection(db, "messages"),
+      orderBy("createdAt", "desc"),
+      limit(20)
+    );
+    const unsubRecent = onSnapshot(q, (s) =>
       setRecentMessages(s.docs.map((d) => ({ id: d.id, ...d.data() })))
     );
-    return () => unsub();
+
+    return () => {
+      unsubVisits();
+      unsubMsgs();
+      unsubRecent();
+    };
   }, [authed]);
 
   const handleLogin = (e) => {
@@ -385,7 +305,6 @@ export default function Admin() {
 
       <div className="desktop">
         {!authed ? (
-          /* ── LOGIN DIALOG ── */
           <div className="window login-window">
             <div className="title-bar">
               <span className="title-bar-text">Admin Gate - Authentication Required</span>
@@ -433,7 +352,6 @@ export default function Admin() {
             </div>
           </div>
         ) : (
-          /* ── DASHBOARD ── */
           <div className="window dash-window">
             <div className="title-bar">
               <span className="title-bar-text">Isturyahanay - Internal Dashboard v1.0 [ADMIN]</span>
@@ -452,7 +370,6 @@ export default function Admin() {
             </div>
 
             <div className="dash-body">
-              {/* STAT GROUPS */}
               <div className="stat-row">
                 <div className="stat-group">
                   <div className="group-title">Visits</div>
@@ -487,7 +404,6 @@ export default function Admin() {
                 </div>
               </div>
 
-              {/* ACTIVITY LOG */}
               <div className="activity-section">
                 <div className="section-header">
                   <span className="section-title">Recent Activity (Last 20 Messages)</span>
@@ -528,9 +444,11 @@ export default function Admin() {
         )}
       </div>
 
-      {/* TASKBAR */}
       <div className="taskbar">
-        <button className="win-btn" style={{ fontWeight: 700, padding: "2px 12px", height: 22, minWidth: 0, fontSize: 13 }}>
+        <button className="win-btn" style={{
+          fontWeight: 700, padding: "2px 12px",
+          height: 22, minWidth: 0, fontSize: 13
+        }}>
           Start
         </button>
         {authed && (
