@@ -158,7 +158,7 @@ const styles = `
     padding: 4px 6px; user-select: text;
   }
 
-  .landing-window { width: 420px; flex-shrink: 0; }
+  .landing-window { width: 440px; flex-shrink: 0; }
   .dialog-body { padding: 16px 20px; }
   .dialog-icon-row { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
   .dialog-message { font-family: var(--font); font-size: 13px; line-height: 1.6; color: var(--text); }
@@ -176,13 +176,36 @@ const styles = `
   }
 
   .nick-window {
-    width: 360px;
+    width: 380px;
     position: fixed; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     z-index: 200;
   }
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 100; }
   .nick-label { font-family: var(--font); font-size: 13px; margin-bottom: 6px; display: block; }
+
+  /* ── Anonymous notice box ── */
+  .anon-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #fffff0;
+    border-top: 2px solid var(--win-darker);
+    border-left: 2px solid var(--win-darker);
+    border-right: 2px solid var(--win-light);
+    border-bottom: 2px solid var(--win-light);
+    padding: 7px 10px;
+    margin-bottom: 14px;
+    font-family: var(--font);
+    font-size: 11px;
+    line-height: 1.55;
+    color: #333;
+  }
+  .anon-notice-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+    font-size: 15px;
+  }
 
   .chat-window {
     width: 600px;
@@ -230,6 +253,18 @@ const styles = `
   .msg-nick.anon { color: var(--win-dark); font-weight: 400; }
   .msg-text { word-break: break-word; flex: 1; }
   .no-messages { color: var(--win-dark); font-style: italic; padding: 12px 4px; }
+
+  /* System message style for the pinned notice in chat */
+  .msg-row.system { opacity: 0.75; }
+  .msg-system-text {
+    font-style: italic;
+    color: var(--win-dark);
+    font-size: 11px;
+    padding: 2px 0 4px;
+    border-bottom: 1px dashed #b0b0b0;
+    margin-bottom: 4px;
+    width: 100%;
+  }
 
   .input-row {
     display: flex; gap: 6px;
@@ -297,10 +332,11 @@ const styles = `
     .dialog-message { font-size: 12px; line-height: 1.5; }
     .dialog-buttons { flex-wrap: wrap; padding: 8px 14px 12px; gap: 6px; }
     .win-btn { min-width: 65px; padding: 4px 12px; font-size: 12px; }
-    .nick-window { width: calc(100vw - 16px); max-width: 340px; }
+    .nick-window { width: calc(100vw - 16px); max-width: 360px; }
     .title-bar-text { font-size: 12px; }
     .taskbar { height: 32px; }
     .taskbar-clock { font-size: 10px; padding: 2px 6px; }
+    .anon-notice { font-size: 10px; }
   }
 `;
 
@@ -323,13 +359,30 @@ function Clock() {
   return <div className="taskbar-clock">{time}</div>;
 }
 
-// ── SHARED HELPER — safely increment an analytics doc ──────────────────────
+// Reusable anonymous notice box shown in both landing & nick modal
+function AnonNotice() {
+  return (
+    <div className="anon-notice">
+      <span className="anon-notice-icon">🔒</span>
+      <span>
+        <strong>Your identity is completely anonymous.</strong> No account,
+        e-mail, or personal information is required or stored.
+        Your username is only a display label — it cannot be traced back to you.
+        <br />
+        <em>
+          Even so, please be kind and thoughtful. Treat others the way
+          you'd want to be treated — anonymous or not.
+        </em>
+      </span>
+    </div>
+  );
+}
+
 async function incrementStat(docRef, todayStr, fields = {}) {
   const snap = await getDoc(docRef);
   const today = todayStr;
 
   if (!snap.exists()) {
-    // Document doesn't exist yet — create it with setDoc
     await setDoc(docRef, {
       total: 1,
       today: 1,
@@ -341,7 +394,6 @@ async function incrementStat(docRef, todayStr, fields = {}) {
     const isNewDay = data.lastDate !== today;
     await updateDoc(docRef, {
       total: increment(1),
-      // reset today count if it's a new day, otherwise increment
       today: isNewDay ? 1 : increment(1),
       lastDate: today,
     });
@@ -358,23 +410,19 @@ export default function Chat() {
   const chatEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  // ── Track visit + subscribe to messages once user enters ──────────────────
   useEffect(() => {
     if (!entered) return;
 
     const today = new Date().toDateString();
-
-    // Track the visit
     incrementStat(doc(db, "analytics", "visits"), today);
 
-    // Subscribe to messages
     const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setMessages(snapshot.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
 
     return () => unsubscribe();
-  }, [entered]); // runs exactly once when entered flips to true
+  }, [entered]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -393,14 +441,12 @@ export default function Chat() {
     if (!input.trim()) return;
     const today = new Date().toDateString();
 
-    // Write the message
     await addDoc(collection(db, "messages"), {
       text: input.trim(),
       nickname,
       createdAt: serverTimestamp(),
     });
 
-    // Track the message stat
     await incrementStat(doc(db, "analytics", "messages"), today);
 
     setInput("");
@@ -418,7 +464,7 @@ export default function Chat() {
     <>
       <style>{styles}</style>
 
-      {/* NICK MODAL */}
+      {/* ── NICK MODAL ── */}
       {showNickModal && (
         <>
           <div className="overlay" />
@@ -442,6 +488,10 @@ export default function Chat() {
                   Leave blank to connect as <strong>Anonymous</strong>.
                 </div>
               </div>
+
+              {/* ── Anonymity notice inside the nick modal ── */}
+              <AnonNotice />
+
               <div className="separator" />
               <form onSubmit={handleNickSubmit}>
                 <label className="nick-label">Username:</label>
@@ -475,7 +525,7 @@ export default function Chat() {
 
       <div className="desktop">
         {!entered ? (
-          /* LANDING */
+          /* ── LANDING ── */
           <div className="window landing-window">
             <div className="title-bar">
               <span className="title-bar-text">Isturyahanay - Welcome</span>
@@ -500,13 +550,17 @@ export default function Chat() {
                   Would you like to enter the public chatroom and start a conversation?
                 </div>
               </div>
+
+              {/* ── Anonymity notice on the landing page ── */}
+              <AnonNotice />
+
               <div className="separator" />
               <div style={{
                 fontFamily: "var(--font)", fontSize: "12px",
                 color: "var(--win-dark)", marginBottom: "14px", lineHeight: 1.6
               }}>
                 This program requires a valid username.<br/>
-                All messages are visible to all users.
+                All messages are visible to all users in real time.
               </div>
             </div>
             <div className="dialog-buttons">
@@ -516,7 +570,7 @@ export default function Chat() {
             </div>
           </div>
         ) : (
-          /* CHAT */
+          /* ── CHAT ── */
           <div className="window chat-window">
             <div className="title-bar">
               <span className="title-bar-text">
@@ -538,6 +592,12 @@ export default function Chat() {
             </div>
 
             <div className="inset-box messages-area">
+              {/* Pinned system notice at the top of every chat session */}
+              <div className="msg-system-text">
+                🔒 You are anonymous. No personal info is collected.
+                Be respectful — your words are seen by everyone in this room.
+              </div>
+
               {messages.length === 0
                 ? <div className="no-messages">No messages yet. Say something!</div>
                 : messages.map((msg) => (
