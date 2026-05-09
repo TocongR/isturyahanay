@@ -304,6 +304,65 @@ const styles = `
     border-bottom: 1px solid var(--win-light);
     padding: 2px 8px;
   }
+
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 480px) {
+    .desktop {
+      padding: 8px;
+    }
+
+    .landing-window {
+      width: 100%;
+      max-width: calc(100vw - 16px);
+    }
+
+    .dialog-body {
+      padding: 12px 14px;
+    }
+
+    .dialog-icon-row {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .dialog-message {
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .dialog-buttons {
+      flex-wrap: wrap;
+      padding: 8px 14px 12px;
+      gap: 6px;
+    }
+
+    .win-btn {
+      min-width: 65px;
+      padding: 4px 12px;
+      font-size: 12px;
+    }
+
+    .nick-window {
+      width: calc(100vw - 16px);
+      max-width: 340px;
+    }
+
+    .title-bar-text {
+      font-size: 12px;
+    }
+
+    .taskbar {
+      height: 32px;
+    }
+
+    .taskbar-clock {
+      font-size: 10px;
+      padding: 2px 6px;
+    }
+  }
 `;
 
 function formatTime(ts) {
