@@ -127,6 +127,7 @@ const styles = `
     border-bottom: 2px solid var(--win-darker);
     box-shadow: inset 1px 1px 0 #e8e4dc, inset -1px -1px 0 #a0a0a0;
     user-select: none;
+    flex-shrink: 0;
   }
   .win-btn:active {
     border-top: 2px solid var(--win-darker);
@@ -184,7 +185,6 @@ const styles = `
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.25); z-index: 100; }
   .nick-label { font-family: var(--font); font-size: 13px; margin-bottom: 6px; display: block; }
 
-  /* ── Anonymous notice box ── */
   .anon-notice {
     display: flex;
     align-items: flex-start;
@@ -251,10 +251,9 @@ const styles = `
   .msg-time { color: var(--win-dark); flex-shrink: 0; font-size: 11px; margin-top: 1px; }
   .msg-nick { font-weight: 700; flex-shrink: 0; color: var(--win-title-from); }
   .msg-nick.anon { color: var(--win-dark); font-weight: 400; }
-  .msg-text { word-break: break-word; flex: 1; }
+  .msg-text { word-break: break-word; flex: 1; min-width: 0; }
   .no-messages { color: var(--win-dark); font-style: italic; padding: 12px 4px; }
 
-  /* System message style for the pinned notice in chat */
   .msg-row.system { opacity: 0.75; }
   .msg-system-text {
     font-style: italic;
@@ -272,13 +271,17 @@ const styles = `
     flex-shrink: 0;
     border-top: 1px solid var(--win-darker);
     align-items: center;
+    flex-wrap: wrap;
   }
   .input-nick-tag {
     font-family: var(--font); font-size: 13px;
     font-weight: 700; color: var(--win-title-from);
     flex-shrink: 0; white-space: nowrap;
   }
-  .msg-input { flex: 1; }
+  .msg-input {
+    flex: 1;
+    min-width: 0;
+  }
 
   .statusbar {
     padding: 2px 8px;
@@ -314,6 +317,10 @@ const styles = `
     border-left: 1px solid var(--win-darker);
     border-right: 1px solid var(--win-light);
     border-bottom: 1px solid var(--win-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
   }
   .taskbar-clock {
     margin-left: auto; font-family: var(--font); font-size: 11px;
@@ -322,21 +329,82 @@ const styles = `
     border-right: 1px solid var(--win-light);
     border-bottom: 1px solid var(--win-light);
     padding: 2px 8px;
+    flex-shrink: 0;
   }
 
   @media (max-width: 480px) {
-    .desktop { padding: 8px; }
-    .landing-window { width: 100%; max-width: calc(100vw - 16px); }
+    .desktop { padding: 4px; }
+    .landing-window { width: 100%; max-width: calc(100vw - 8px); }
     .dialog-body { padding: 12px 14px; }
     .dialog-icon-row { flex-direction: column; align-items: center; text-align: center; gap: 12px; margin-bottom: 14px; }
     .dialog-message { font-size: 12px; line-height: 1.5; }
     .dialog-buttons { flex-wrap: wrap; padding: 8px 14px 12px; gap: 6px; }
-    .win-btn { min-width: 65px; padding: 4px 12px; font-size: 12px; }
+    .win-btn { min-width: 60px; padding: 4px 10px; font-size: 12px; }
     .nick-window { width: calc(100vw - 16px); max-width: 360px; }
-    .title-bar-text { font-size: 12px; }
+    .title-bar-text { font-size: 11px; }
     .taskbar { height: 32px; }
     .taskbar-clock { font-size: 10px; padding: 2px 6px; }
+    .taskbar-window-btn { max-width: 140px; font-size: 10px; }
     .anon-notice { font-size: 10px; }
+
+    .chat-window {
+      width: 100%;
+      max-width: calc(100vw - 8px);
+      height: calc(100vh - 40px);
+      max-height: calc(100vh - 40px);
+    }
+
+    .input-row {
+      flex-wrap: nowrap;
+      gap: 4px;
+      padding: 4px 6px 6px;
+    }
+    .input-nick-tag {
+      display: none;
+    }
+    .msg-input {
+      flex: 1;
+      min-width: 0;
+      font-size: 12px;
+    }
+    .win-btn.send-btn {
+      min-width: 50px;
+      padding: 4px 8px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .messages-area {
+      padding: 4px 6px;
+      margin: 4px 4px;
+      font-size: 12px;
+    }
+    .msg-time { font-size: 10px; }
+    .msg-nick { font-size: 12px; }
+
+    .menubar { display: none; }
+
+    .statusbar {
+      padding: 2px 4px;
+      gap: 4px;
+    }
+    .status-panel {
+      font-size: 10px;
+      padding: 1px 4px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .chat-window {
+      width: 100%;
+      max-width: 100vw;
+    }
+    .msg-time { display: none; }
+    .win-btn.send-btn {
+      min-width: 44px;
+      padding: 4px 6px;
+      font-size: 10px;
+    }
   }
 `;
 
@@ -359,19 +427,17 @@ function Clock() {
   return <div className="taskbar-clock">{time}</div>;
 }
 
-// Reusable anonymous notice box shown in both landing & nick modal
 function AnonNotice() {
   return (
     <div className="anon-notice">
       <span className="anon-notice-icon">🔒</span>
       <span>
-        <strong>Your identity is completely anonymous.</strong> No account,
-        e-mail, or personal information is required or stored.
-        Your username is only a display label — it cannot be traced back to you.
+        <strong>You're completely anonymous here.</strong> No account,
+        e-mail, or personal info is needed — nothing is stored.
+        Your username is just a display name and can't be traced back to you.
         <br />
         <em>
-          Even so, please be kind and thoughtful. Treat others the way
-          you'd want to be treated — anonymous or not.
+          That said, please be kind and thoughtful. Have fun!
         </em>
       </span>
     </div>
@@ -464,13 +530,13 @@ export default function Chat() {
     <>
       <style>{styles}</style>
 
-      {/* ── NICK MODAL ── */}
+      {/* NICK MODAL */}
       {showNickModal && (
         <>
           <div className="overlay" />
           <div className="window nick-window">
             <div className="title-bar">
-              <span className="title-bar-text">Enter Username</span>
+              <span className="title-bar-text">Choose a Username</span>
               <div className="title-bar-controls">
                 <div className="title-btn">?</div>
                 <div className="title-btn">X</div>
@@ -484,12 +550,11 @@ export default function Chat() {
                   <path d="M8 28 Q18 20 28 28" fill="#000080"/>
                 </svg>
                 <div className="dialog-message">
-                  Please enter your username for this chat session.<br/>
-                  Leave blank to connect as <strong>Anonymous</strong>.
+                  What should we call you?<br/>
+                  Pick a username, or leave it blank to join as <strong>Anonymous</strong>.
                 </div>
               </div>
 
-              {/* ── Anonymity notice inside the nick modal ── */}
               <AnonNotice />
 
               <div className="separator" />
@@ -502,6 +567,7 @@ export default function Chat() {
                   onChange={(e) => setNickInput(e.target.value)}
                   autoFocus
                   maxLength={24}
+                  placeholder="Enter a display name..."
                 />
                 <div style={{ display: "flex", gap: "8px", justifyContent: "center" }}>
                   <button className="win-btn" type="submit">OK</button>
@@ -514,7 +580,7 @@ export default function Chat() {
                       setEntered(true);
                     }}
                   >
-                    Cancel
+                    Skip
                   </button>
                 </div>
               </form>
@@ -525,7 +591,7 @@ export default function Chat() {
 
       <div className="desktop">
         {!entered ? (
-          /* ── LANDING ── */
+          /* LANDING */
           <div className="window landing-window">
             <div className="title-bar">
               <span className="title-bar-text">Isturyahanay - Welcome</span>
@@ -546,12 +612,11 @@ export default function Chat() {
                   <polygon points="8,26 14,26 10,32" fill="#000080"/>
                 </svg>
                 <div className="dialog-message">
-                  <strong>Isturyahanay</strong> is now loading.<br/><br/>
-                  Would you like to enter the public chatroom and start a conversation?
+                  Welcome to <strong>Isturyahanay</strong>.<br/><br/>
+                  Jump into the public chatroom and say hi — have fun out there!
                 </div>
               </div>
 
-              {/* ── Anonymity notice on the landing page ── */}
               <AnonNotice />
 
               <div className="separator" />
@@ -559,8 +624,8 @@ export default function Chat() {
                 fontFamily: "var(--font)", fontSize: "12px",
                 color: "var(--win-dark)", marginBottom: "14px", lineHeight: 1.6
               }}>
-                This program requires a valid username.<br/>
-                All messages are visible to all users in real time.
+                Pick a username and you're good to go.<br/>
+                All messages are visible to everyone in real time.
               </div>
             </div>
             <div className="dialog-buttons">
@@ -570,7 +635,7 @@ export default function Chat() {
             </div>
           </div>
         ) : (
-          /* ── CHAT ── */
+          /* CHAT */
           <div className="window chat-window">
             <div className="title-bar">
               <span className="title-bar-text">
@@ -592,14 +657,13 @@ export default function Chat() {
             </div>
 
             <div className="inset-box messages-area">
-              {/* Pinned system notice at the top of every chat session */}
               <div className="msg-system-text">
-                🔒 You are anonymous. No personal info is collected.
-                Be respectful — your words are seen by everyone in this room.
+                🔒 You're anonymous here. No personal info is collected.
+                Be kind, have funnn, and enjoy the conversation!
               </div>
 
               {messages.length === 0
-                ? <div className="no-messages">No messages yet. Say something!</div>
+                ? <div className="no-messages">No messages yet. Be the first to say hi!</div>
                 : messages.map((msg) => (
                   <div className="msg-row" key={msg.id}>
                     <span className="msg-time">[{formatTime(msg.createdAt)}]</span>
@@ -625,7 +689,7 @@ export default function Chat() {
                 autoFocus
               />
               <button
-                className="win-btn"
+                className="win-btn send-btn"
                 onClick={sendMessage}
                 disabled={!input.trim()}
               >
@@ -656,7 +720,7 @@ export default function Chat() {
         </button>
         {entered && (
           <button className="taskbar-window-btn">
-            Isturyahanay - Public Room #1
+            Isturyahanay - Room #1
           </button>
         )}
         <Clock />
